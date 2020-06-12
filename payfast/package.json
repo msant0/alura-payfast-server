@@ -25,11 +25,13 @@
   "dependencies": {
     "2": "^3.0.0",
     "body-parser": "^1.19.0",
+    "chokidar": "^3.4.0",
     "consign": "^0.1.6",
     "express": "^4.17.1",
     "express-validator": "^2.20.8",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.4",
-    "sequelize": "^3.0.0"
+    "sequelize": "^3.0.0",
+    "swagger-ui-express": "^4.1.4"
   }
 }

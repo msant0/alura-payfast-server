@@ -1,6 +1,6 @@
 module.exports = function (app) {
   app.get ('/pagamentos', function (req, res) {
-    console.log ('requisição recebida na porta 3002');
+    console.log ('requisição recebida na porta 3003');
     res.send ('Retorno da requisição');
   });
 

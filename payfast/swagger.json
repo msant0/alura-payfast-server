@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Payfast Node-JS",
+    "description": "Quick charge method"
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Local Dev"
+    }
+  ],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/pagamentos": {
+      "get": {
+        "tags": ["Payment Request"],
+        "summary": "Established connection feedback",
+        "responses": {
+          "200": {
+            "description": "Connected!"
+          }
+        }
+      }
+    },
+    "/pagamentos/pagamento": {
+      "post": {
+        "tags": ["Handle a payment"],
+        "summary": "Enter a payment method",
+        "requestBody": {
+          "description": "Payment Object",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/payment"
+              }
+            }
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Failed. Bad request!"
+          }
+        }
+      }
+    },
+    "/pagamentos/pagamento/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "Update with confirmed payment status",
+          "type": "string"
+        }
+      ],
+      "put": {
+        "summary": "Update payment method (Confirmed)",
+        "tags": ["Handle a payment"],
+        "requestBody": {
+          "description": "Payment Object",
+          "require": true
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": "true",
+            "description": "Update with confirmed payment status",
+            "schema": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully changed data!"
+          },
+          "500": {
+            "description": "Internal server error!"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Handle a payment"],
+        "summary": "Delete a payment method (Canceled)",
+        "requestBody": {
+          "description": "Payment Object",
+          "require": true
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": "true",
+            "description": "Delete with canceled payment status",
+            "schema": {
+              "$ref": "#/definitions/id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successfully changed data!"
+          },
+          "500": {
+            "description": "Internal server error!"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "id": {
+      "properties": {
+        "uuid": {
+          "type": "string"
+        }
+      }
+    },
+    "payment": {
+      "type": "object",
+      "properties": {
+        "formaPagamento": {
+          "type": "string"
+        },
+        "valor": {
+          "type": "string"
+        },
+        "moeda": {
+          "type": "string"
+        },
+        "descricao": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
