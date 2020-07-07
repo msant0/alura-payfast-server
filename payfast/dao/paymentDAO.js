@@ -7,7 +7,11 @@ PaymentDAO.prototype.save = function(payment,callback) {
 }
 
 PaymentDAO.prototype.findById = function (id,callback) {
-  this._connection.query("SELECT * from pagamentos where id = ?",[id],callback);
+  this._connection.query('SELECT * FROM pagamentos where id = ?',[id],callback);
+}
+
+PaymentDAO.prototype.findAll = function (id, callback) {
+  this._connection.query('SELECT * FROM pagamentos');
 }
 
 PaymentDAO.prototype.update = function(payment,callback) {
