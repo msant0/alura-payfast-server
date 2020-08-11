@@ -29,10 +29,16 @@
     "consign": "^0.1.6",
     "express": "^4.17.1",
     "express-validator": "^2.20.8",
+    "memcached": "^2.2.2",
+    "morgan": "^1.10.0",
     "mysql": "^2.18.1",
     "nodemon": "^2.0.4",
+    "restify": "^8.5.1",
+    "restify-clients": "^3.0.0",
     "sequelize": "^3.0.0",
-    "swagger-ui-express": "^4.1.4"
+    "soap": "^0.32.0",
+    "swagger-ui-express": "^4.1.4",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "chai": "^4.2.0",

@@ -1,0 +1,15 @@
+{
+    "payment": {
+        "form_of_payment": "cartao",
+        "value": 97.53,
+        "coin": "USD",
+        "description": "criando um pagamento"
+    },
+    "card": {
+        "number": 12341234123447382,
+        "flag": "visa",
+        "expiration_year": 2016,
+        "expiration_month": 12,
+        "cvv": 123
+    }
+}

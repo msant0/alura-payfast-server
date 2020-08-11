@@ -1,4 +1,5 @@
-constants = require('../../payfast/helpers/constants.js')
+const constants = require('../../payfast/helpers/constants')
+const logger = require('../services/logger')
 
 module.exports = function (app) {
   app.get('/', function (req, res) {
@@ -20,20 +21,44 @@ module.exports = function (app) {
     });
   })
 
+  app.get('/pagamentos/pagamento/:id', function (req, res) {
+    const id = req.params.id
+    const memcachedClient = app.services.memcachedClient()
+
+    logger.info(constants.LOGGER_CONSULTING_PAYMENT, + id)
+
+    memcachedClient.get(constants.PRE_INDEX_KEY_CACHE + id, function (error, comeAround) {
+      if (error || !comeAround) {
+        console.log(constants.MESSAGE_ERROR_KEY_CACHE)
+
+        const connection = app.connection.connectionFactory();
+        const paymentDAO = new app.dao.paymentDAO(connection);
+
+        paymentDAO.findById(id, function (error, comeAround) {
+          if (error) return res.status(500).send(error)
+          return res.json(comeAround)
+        })
+      } else {
+        console.log('HIT - Value: ' + JSON.stringify(comeAround))
+        return res.json(comeAround)
+      }
+    })
+  })
+
   app.post('/pagamentos/pagamento', (req, res) => {
-    let payment = req.body;
+    let payment = req.body["payment"];
 
     //Data entry validation
     req
-      .assert('formaPagamento', constants.MENSAGEM_ERRO_VALIDACAO_FORMA_PAGAMENTO_CADASTRO)
+      .assert('payment.form_of_payment', constants.MESSAGE_ERROR_PAYMENT_FORM)
       .notEmpty();
     req
-      .assert('valor', constants.MENSAGEM_ERRO_VALIDACAO_VALOR_CADASTRO)
+      .assert('payment.value', constants.MESSAGE_ERROR_VALUE)
       .notEmpty()
       .isFloat();
 
     req
-      .assert('moeda', constants.MENSAGEM_ERRO_VALIDACAO_MOEDA_CADASTRO)
+      .assert('payment.coin', constants.MESSAGE_ERROR_COIN)
       .notEmpty()
       .len(3, 3);
 
@@ -55,27 +80,68 @@ module.exports = function (app) {
         res.status(500).send(error);
       } else {
         payment.id = result.insertId
-        res.location('/pagamentos/pagamento/' + payment.id);
 
-        let response = {
-          paymentDates: payment,
-          links: [
-            {
-              href: 'http://localhost:3000/pagamentos/pagamento/'
-                + payment.id,
-              rel: 'confirmar',
-              method: 'PUT'
-            },
-            {
-              href: 'http://localhost:3000/pagamentos/pagamento/'
-                + payment.id,
-              rel: 'cancelar',
-              method: 'DELETE'
+        const memcachedClient = app.services.memcachedClient()
+        memcachedClient.set(constants.PRE_INDEX_KEY_CACHE + payment.id, payment, 6000, function (error) {
+          console.log(constants.KEY_ADD_CACHE + payment.id)
+        })
+
+        if (payment.form_of_payment == 'cartao') {
+          const card = req.body["card"]
+          const cardsClient = new app.services.cardsClient()
+
+          cardsClient.authorized(card, function (exception, request, response, comeAround) {
+            if (exception) {
+              return res.status(400).send(exception.body)
             }
-          ]
-        }
+            console.log(constants.SERVICE_CONSUMED_MESSAGE)
+            console.log(comeAround)
 
-        res.status(201).json(response);
+            res.location('/pagamentos/pagamento/' + payment.id);
+
+            response = {
+              paymentDates: payment,
+              card: comeAround,
+              links: [
+                {
+                  href: 'http://localhost:3000/pagamentos/pagamento/'
+                    + payment.id,
+                  rel: 'confirmar',
+                  method: 'PUT'
+                },
+                {
+                  href: 'http://localhost:3000/pagamentos/pagamento/'
+                    + payment.id,
+                  rel: 'cancelar',
+                  method: 'DELETE'
+                }
+              ]
+            }
+            res.status(201).json(response)
+            return
+          })
+        } else {
+          res.location('/pagamentos/pagamento/' + payment.id);
+
+          let response = {
+            paymentDates: payment,
+            links: [
+              {
+                href: 'http://localhost:3000/pagamentos/pagamento/'
+                  + payment.id,
+                rel: 'confirmar',
+                method: 'PUT'
+              },
+              {
+                href: 'http://localhost:3000/pagamentos/pagamento/'
+                  + payment.id,
+                rel: 'cancelar',
+                method: 'DELETE'
+              }
+            ]
+          }
+          res.status(201).json(response);
+        }
       }
     });
   });
@@ -85,7 +151,7 @@ module.exports = function (app) {
     const id = req.params.id;
 
     payment.id = id;
-    payment.status = 'Confirmado';
+    payment.status = constants.STATUS_CONFIRMED_PAYMENT;
     const connection = app.connection.connectionFactory();
     const paymentDAO = new app.dao.paymentDAO(connection);
 
@@ -99,7 +165,7 @@ module.exports = function (app) {
 
   app.delete('/pagamentos/pagamento/:id', (req, res) => {
     let payment = {};
-    if (req.params.id === '') return MENSAGEM_ERRO_EXCLUSAO_PAGAMENTO_POR_PARAMETRO;
+    if (req.params.id === '') return constants.MESSAGE_DELETE_PAYMENT_FOR_PARAM;
 
     payment.id = req.params.id;
     payment.status = 'Cancelado';
